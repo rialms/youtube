@@ -17,7 +17,7 @@ function initClient() {
     // Get API key and client ID from API Console.
     // 'scope' field specifies space-delimited list of access scopes.
     gapi.client.init({
-        'apiKey': 'AIzaSyCeQT2NinNBQ1DneTEBGujhdkezXQxZhWY',
+        'apiKey': 'AIzaSyAINif8c27d7C-BsZtlzCtJz6L0UJsa-HM',
         'discoveryDocs': [discoveryUrl],
         'clientId': '72050858227-seoaqba069c7ro888r955k5cfnt5fgqr.apps.googleusercontent.com',
         'scope': SCOPE
@@ -48,6 +48,66 @@ function initClient() {
     });
 }
 function checkIfSignedIn(){
+  return GoogleAuth.isSignedIn.get();
+}
+
+function handleAuthClick() {
+    if (GoogleAuth.isSignedIn.get()) {
+        // User is authorized and has clicked 'Sign out' button.
+        GoogleAuth.signOut();
+    } else {
+        // User is not signed in. Start Google auth flow.
+        GoogleAuth.signIn();
+    }
+}
+
+function revokeAccess() {
+    GoogleAuth.disconnect();
+}
+
+function setSigninStatus(isSignedIn) {
+    var user = GoogleAuth.currentUser.get();
+    var isAuthorized = user.hasGrantedScopes(SCOPE);
+    if (isAuthorized) {
+        $('#sign-in-or-out-button').html('Sign out');
+        $('#revoke-access-button').css('display', 'inline-block');
+        $('#auth-status').html('You are currently signed in and have granted ' +
+            'access to this app.');
+        $('#add-subscription').html('Add Subscription')
+    } else {
+        $('#add-subscription').html('error')
+        $('#sign-in-or-out-button').html('Sign In/Authorize');
+        $('#revoke-access-button').css('display', 'none');
+        $('#auth-status').html('You have not authorized this app or you are ' +
+            'signed out.');
+    }
+}
+
+function updateSigninStatus(isSignedIn) {
+    setSigninStatus();
+}
+
+// Subscribes the authorized user to the channel specified
+function addSubscription(channelSub) {
+    var resource = {
+        part: 'id,snippet',
+        snippet: {
+            resourceId: {
+                kind: 'youtube#channel',
+                channelId: channelSub
+            }
+        }
+    };
+
+    var request = gapi.client.youtube.subscriptions.insert(resource);
+    request.execute(function(response) {
+        var result = response.result;
+        if (result) {
+            console.log("subscription completed");
+        }
+    });
+}
+
   return GoogleAuth.isSignedIn.get();
 }
 
